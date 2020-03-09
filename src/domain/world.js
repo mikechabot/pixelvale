@@ -3,6 +3,7 @@ import Maybe from 'maybe-baby';
 import Tile from './tile';
 import {getNumberBetween} from '../util/random';
 import Room from './room';
+import {TILE_TYPE} from './enums/tileType';
 
 class World {
     constructor(width, height) {
@@ -19,7 +20,9 @@ class World {
         for (let x = 0; x < this.width; x++) {
             this.tiles[x] = {};
             for (let y = 0; y < this.height; y++) {
-                this.tiles[x][y] = new Tile(x, y);
+                const tile = new Tile(x, y);
+                tile.type = TILE_TYPE.EARTH;
+                this.tiles[x][y] = tile;
             }
         }
     }

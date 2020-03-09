@@ -1,3 +1,11 @@
+import Chance from 'chance';
+
+const chance = new Chance();
+
 export const getNumberBetween = (min, max) => {
-    return Math.floor(Math.random() * (max - min)) + min;
+    return chance.integer({min, max});
+}
+
+export const getColorAsHex = () => {
+    return chance.color({format: 'hex'});
 }

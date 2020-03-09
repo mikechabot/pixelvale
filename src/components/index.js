@@ -3,11 +3,16 @@ import classNames from 'classnames/bind';
 import { observer } from 'mobx-react'
 import { useStores } from '../hooks';
 
+import {getColorAsHex} from '../util/random';
+import {TILE_TYPE_IMAGE} from '../assets/tiles';
+
 import styles from './styles/Pixelvale.module.scss';
 const cx = classNames.bind(styles);
 
 const generateTileMap = (dungeonStore) => {
     const {width, height} = dungeonStore.getDimensions();
+
+    const roomColorMap = {};
 
     const tileMap = [];
     for (let x = 0; x < width; x++) {
@@ -16,19 +21,27 @@ const generateTileMap = (dungeonStore) => {
 
             const tile = dungeonStore.getTileAt(x, y);
 
-            const roomStyle = {};
-            if (tile.room) {
-                roomStyle.backgroundColor = 'cyan';
+            const tileTypeImage = TILE_TYPE_IMAGE[tile.type];
+
+            const backgroundStyle = {};
+            if (tileTypeImage) {
+                backgroundStyle.backgroundImage = `url(${tileTypeImage()})`;
+                backgroundStyle.backgroundSize = 'contain';
             }
+
+            // const roomStyle = {};
+            // if (tile.room) {
+            //     backgroundStyle.backgroundImage = null;
+            // }
 
             children.push(
                 <div
+                    key={`tile:${tile.toString()}`}
                     style={{
-                        border: '1px solid black',
-                        height: 25, width: 25,
+                        height: 64, width: 64,
                         flexShrink: 0,
-                        fontSize: 8,
-                        ...roomStyle
+                        fontSize: 12,
+                        ...backgroundStyle
                     }}>
                     <div>{`${tile.x},${tile.y}`}</div>
                     {tile.room && (
@@ -37,7 +50,7 @@ const generateTileMap = (dungeonStore) => {
                 </div>
             )
         }
-        tileMap.push(<div style={{display: 'flex', flexShrink: 0}}>{children}</div>)
+        tileMap.push(<div key={x} style={{display: 'flex', flexShrink: 0}}>{children}</div>)
     }
 
     return tileMap;

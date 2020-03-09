@@ -1,5 +1,6 @@
 import isNil from 'lodash/isNil';
 import includes from 'lodash/includes';
+import {TILE_TYPE} from './enums/tileType';
 
 class Room {
     constructor(id) {
@@ -37,9 +38,8 @@ class Room {
             for (let y = 0; y < height; y++) {
                 const tile = world.getTileAt(startX + x, startY + y);
                 if (tile) {
-                    console.log(`Trying to assign tile ${tile.toString()} to room ${this.id}`);
                     if (!world.isEdgeTile(tile)) {
-                        console.log(`Assigned tile ${tile.toString()} to room ${this.id}`);
+                        tile.type = TILE_TYPE.FLOOR;
                         this.assignToTile(tile);
                     }
                 }
