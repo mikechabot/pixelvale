@@ -3,14 +3,14 @@ import includes from 'lodash/includes';
 import {TILE_TYPE} from './enums/tileType';
 
 class Room {
-    constructor(id) {
+    constructor(id, dimensions) {
         this.id = id;
+        this.dimensions = dimensions;
         this.tiles = [];
     }
 
     assignToTile(tile) {
         if (includes(this.tiles, tile)) {
-            console.warn(`Tile x:${tile.x}, y:${tile.y} is already assigned this room`);
             return;
         }
 
