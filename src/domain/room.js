@@ -3,9 +3,10 @@ import includes from 'lodash/includes';
 import {TILE_TYPE} from './enums/tileType';
 
 class Room {
-    constructor(id, dimensions) {
+    constructor(id, dimensions, startingTile) {
         this.id = id;
         this.dimensions = dimensions;
+        this.centerTile = startingTile;
         this.tiles = [];
     }
 
@@ -22,6 +23,17 @@ class Room {
         tile.room = this;
 
         this.tiles.push(tile);
+    }
+
+    getCenterTile() {
+        return this.centerTile;
+    }
+
+    getSouthernMostRoomTile(nextTile = this.centerTile) {
+        if (nextTile.type === TILE_TYPE.WALL) {
+            return nextTile;
+        }
+        return this.getSouthernMostRoomTile(nextTile.south());
     }
 
     build(startTile, roomDimensions, world) {

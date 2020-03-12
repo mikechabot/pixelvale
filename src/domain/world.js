@@ -28,26 +28,37 @@ class World {
         }
     }
 
-    checkRoomBoundaries(centerTile, roomDimensions) {
+    checkPotentialRoomBoundaries(centerTile, roomDimensions, roomCount) {
+
+        console.log('Checking room boundaries for', centerTile.toString());
+
         const {x, y} = centerTile;
 
         const offsetX = Math.floor(roomDimensions.width / 2);
         const offsetY = Math.floor(roomDimensions.height / 2);
 
-        const northWestTile = this.getTileAt(x - offsetX, y - offsetY);
-        const southEastTile = this.getTileAt(x + offsetX, y + offsetY);
+        const northWestTile = this.getTileAt(x - offsetX - 1, y - offsetY - 1);
+        const southEastTile = this.getTileAt(x + offsetX + 1, y + offsetY + 1);
 
         const hasTiles = Boolean(northWestTile) && Boolean(southEastTile);
 
         if (!hasTiles) {
-            console.error('Unable to get tiles within bounds');
+            console.warn('Unable to get tiles within bounds');
             return false;
         }
 
         if (this.isEdgeTile(northWestTile) || this.isEdgeTile(southEastTile)) {
-            console.error('One of the tiles is an edge tile');
+            console.warn('One of the tiles is an edge tile');
             return false;
         }
+
+        const northEastTile = this.getTileAt(x + offsetX + 1, y - offsetY - 1);
+        const southWestTile = this.getTileAt(x - offsetX - 1, y + offsetY + 1);
+
+        if (this.hasRoomBetweenTiles(roomCount, northWestTile, northEastTile)) return false;
+        if (this.hasRoomBetweenTiles(roomCount, northEastTile, southEastTile)) return false;
+        if (this.hasRoomBetweenTiles(roomCount, southEastTile, southWestTile)) return false;
+        if (this.hasRoomBetweenTiles(roomCount, southWestTile, northWestTile)) return false;
 
         return true;
     }
@@ -58,24 +69,18 @@ class World {
      * @param attempts
      * @returns {undefined|{width, height}|{width: *, height: *}}
      */
-    getRoomDimensions(centerTile, attempts = 0) {
-        if (attempts >= 10) {
-            console.warn(`Giving up on room generation after ${attempts} attempts`);
-            return;
-        }
-
+    getRoomDimensions(centerTile, roomCount) {
         // const roomDimensions = {
         //     width: 5,
         //     height: 3
         // };
-
         const roomDimensions = {
-            width: getOddNumberBetween(5, 5),
-            height: getOddNumberBetween(5, 9)
+            width: getOddNumberBetween(5, 9),
+            height: getOddNumberBetween(7, 9)
         };
 
-        if (!this.checkRoomBoundaries(centerTile, roomDimensions)) {
-            return this.getRoomDimensions(centerTile, ++attempts);
+        if (!this.checkPotentialRoomBoundaries(centerTile, roomDimensions, roomCount)) {
+            return;
         }
 
         console.log(`Generating room with dimensions: ${JSON.stringify(roomDimensions)}`);
@@ -84,76 +89,72 @@ class World {
     }
 
     generateRooms() {
-        const initialRoomDimensions = {width: 5, height: 7};
-        this.generateInitialRoom(initialRoomDimensions);
+        let attempts = 20;
+
+        while(attempts > 0) {
+
+            const x = getNumberBetween(5, this.width - 5);
+            const y = getNumberBetween(5, this.height - 5);
+
+            const startingTile = this.getTileAt(x, y);
+            if (startingTile.room) {
+                --attempts;
+                console.warn('Starting tile has a room, starting over, attempt #', attempts);
+                continue;
+            }
+
+            const room = this.generateRoom(startingTile);
+
+            if (!room) {
+                --attempts;
+                console.warn('Unable to generate room, starting over, attempt #', attempts);
+                continue;
+            }
+
+            console.log('Successfully generated a room at', startingTile.toString());
+        }
     }
 
-    generateInitialRoom(roomDimensions) {
-        const x = Math.floor(this.width / 4);
-        const y = Math.floor(this.height / 4);
+    generateRoom(startingTile) {
 
-        const centerTile = this.getTileAt(x, y);
+        console.log('ATTEMPTING ROOM GENERATION');
 
-        this.generateRoom(centerTile, roomDimensions);
-    }
+        const roomCount = Object.keys(this.rooms).length + 1;
+        const roomDimensions = this.getRoomDimensions(startingTile, roomCount);
 
-    generateRoom(tile, roomDimensions) {
-
-        if (!this.checkRoomBoundaries(tile, roomDimensions)) {
+        if (!roomDimensions) {
             return;
         }
 
-        const room = new Room(1, roomDimensions);
-        this.rooms = {id: room.id, room};
+        const room = new Room(roomCount, roomDimensions, startingTile);
+
+        this.rooms[room.id] = room;
 
         const offsetX = Math.floor(roomDimensions.width / 2);
         const offsetY = Math.floor(roomDimensions.height / 2);
 
-        const {x, y} = tile;
+        const {x, y} = startingTile;
 
         const northWestTile = this.getTileAt(x - offsetX, y - offsetY);
         const northEastTile = this.getTileAt(x + offsetX, y - offsetY);
         const southEastTile = this.getTileAt(x + offsetX, y + offsetY);
         const southWestTile = this.getTileAt(x - offsetX, y + offsetY);
 
-        northWestTile.text = 'NW';
-        northEastTile.text = 'NE';
-        southEastTile.text = 'SE';
-        southWestTile.text = 'SW';
-
         const boundaries = [northWestTile, northEastTile, southEastTile, southWestTile];
 
-        boundaries.forEach(boundaryTile => {
-            boundaryTile.type = TILE_TYPE.WALL;
+        boundaries.forEach(b => {
+            room.assignToTile(b);
         });
 
-        this.performRoomFloodFill(room, boundaries, tile);
+        this.performRoomFloodFill(room, boundaries, startingTile);
 
-        this.generateHallwayFromRoom(room);
-
+        return room;
     }
 
-    generateHallwayFromRoom(room) {
-        console.log('ROOM', room);
-        const {tiles} = room;
-
-        const maxX = Math.max(...tiles.map(t => t.x));
-        const maxY = Math.max(...tiles.map(t => t.y));
-
-        const startHallwayTile = this.getTileAt(maxX + 5,  maxY - 1);
-        if (!startHallwayTile) {
-            return;
-        }
-
-        startHallwayTile.text = 'DOOR';
-
-        // this.generateRoom(startHallwayTile, {width: 7, height: 5});
-    }
-
-    performRoomFloodFill(room, boundaries, centerTile) {
+    performRoomFloodFill(room, boundaries, startingTile) {
         this.assignWallBoundaries(room, boundaries);
 
-        centerTile.getNeighbors().forEach(neighbor => {
+        startingTile.getNeighbors().forEach(neighbor => {
             this.floodFillRoom(room, neighbor);
         });
     }
@@ -174,12 +175,12 @@ class World {
         const bottomStoryWallOfNorthWest = middleStoryWallOfNorthWest.south();
         const bottomStoryWallOfNorthEast = middleStoryWallOfNorthEast.south();
 
-        this.floodFillFromTo(room, northWestTile, northEastTile, TILE_TYPE.WALL);
-        this.floodFillFromTo(room, middleStoryWallOfNorthWest, middleStoryWallOfNorthEast, TILE_TYPE.WALL);
-        this.floodFillFromTo(room, bottomStoryWallOfNorthWest, bottomStoryWallOfNorthEast, TILE_TYPE.WALL);
-        this.floodFillFromTo(room, northEastTile, southEastTile, TILE_TYPE.WALL);
-        this.floodFillFromTo(room, southEastTile, southWestTile, TILE_TYPE.WALL);
-        this.floodFillFromTo(room, southWestTile, northWestTile, TILE_TYPE.WALL);
+        this.floodFillFromToWithRoomAssignment(room, northWestTile, northEastTile, TILE_TYPE.WALL);
+        this.floodFillFromToWithRoomAssignment(room, middleStoryWallOfNorthWest, middleStoryWallOfNorthEast, TILE_TYPE.WALL);
+        this.floodFillFromToWithRoomAssignment(room, bottomStoryWallOfNorthWest, bottomStoryWallOfNorthEast, TILE_TYPE.WALL);
+        this.floodFillFromToWithRoomAssignment(room, northEastTile, southEastTile, TILE_TYPE.WALL);
+        this.floodFillFromToWithRoomAssignment(room, southEastTile, southWestTile, TILE_TYPE.WALL);
+        this.floodFillFromToWithRoomAssignment(room, southWestTile, northWestTile, TILE_TYPE.WALL);
     }
 
     floodFillRoom(room, tile) {
@@ -217,39 +218,46 @@ class World {
      * @param toTile
      * @param tileType
      */
-    floodFillFromTo(room, fromTile, toTile, tileType) {
+    floodFillFromToWithRoomAssignment(room, fromTile, toTile, tileType) {
         // We've completed the flood, just return.
-        if (fromTile.x === toTile.x && fromTile.y === toTile.y) {
+        if (this.isSameTile(fromTile, toTile)) {
+            return;
+        }
+
+        // The tile doesn't have a room, so it assign it this one
+        if (!fromTile.room) {
+            room.assignToTile(fromTile);
+        }
+
+        // This tile has already been flooded via another room fill
+        if (fromTile.room.id !== room.id) {
             return;
         }
 
         fromTile.type = tileType;
 
-        let nextTile;
-
-        // Flood north
-        if (fromTile.y < toTile.y) {
-            nextTile = this.getTileAt(fromTile.x, fromTile.y + 1);
-        }
-
-        // Flood east
-        if (fromTile.x < toTile.x) {
-            nextTile = this.getTileAt(fromTile.x + 1, fromTile.y);
-        }
-
-        // Flood south
-        if (fromTile.y > toTile.y) {
-            nextTile = this.getTileAt(fromTile.x, fromTile.y - 1);
-        }
-
-        // Flood west
-        if (fromTile.x > toTile.x) {
-            nextTile = this.getTileAt(fromTile.x - 1, fromTile.y);
-        }
+        const nextTile = this.getNextNeighborTile(fromTile, toTile);
 
         if (nextTile) {
-            this.floodFillFromTo(room, nextTile, toTile, tileType);
+            this.floodFillFromToWithRoomAssignment(room, nextTile, toTile, tileType);
         }
+    }
+
+    floodFillFromTo(fromTile, toTile, tileType) {
+        if (this.isSameTile(fromTile, toTile)) {
+            return;
+        }
+
+        const nextTile = this.getNextNeighborTile(fromTile, toTile);
+
+        if (nextTile) {
+            nextTile.type = tileType;
+            this.floodFillFromTo(nextTile, toTile, tileType);
+        }
+    }
+
+    isSameTile(tileA, tileB) {
+        return tileA.x === tileB.x && tileA.y === tileB.y;
     }
 
     isTileFillable(tile) {
@@ -266,6 +274,72 @@ class World {
         }
 
         return true;
+    }
+
+    hasRoomBetweenTiles(roomCount, fromTile, toTile) {
+        // One of the tiles has a room
+        if (fromTile.room || toTile.room) {
+            return true;
+        }
+
+        // We're at out destination tile, if we're here, then
+        // we haven't found a room between them
+        if (fromTile.x === toTile.x && fromTile.y === toTile.y) {
+            return false;
+        }
+
+        const nextTile = this.getNextNeighborTile(fromTile, toTile);
+
+        if (nextTile) {
+            return this.hasRoomBetweenTiles(roomCount, nextTile, toTile);
+        }
+
+        return false;
+    }
+
+    generateHallways() {
+        const doorTiles = [];
+        Object
+            .keys(this.rooms)
+            .forEach(roomId => {
+                const room = this.rooms[roomId];
+                const southernMostTile = room.getSouthernMostRoomTile();
+                if (southernMostTile) {
+                    southernMostTile.text = 'DOOR';
+                    doorTiles.push(southernMostTile);
+                }
+            });
+
+        if (doorTiles.length) {
+            console.log('FLOODFILL WATER');
+            this.floodFillFromTo(doorTiles[0], doorTiles[1], TILE_TYPE.WATER);
+        }
+    }
+
+    getNextNeighborTile(fromTile, toTile) {
+        let nextTile;
+
+        // Get north tile
+        if (fromTile.y > toTile.y) {
+            nextTile = fromTile.north();
+        }
+
+        // Get east tile
+        if (fromTile.x < toTile.x) {
+            nextTile = fromTile.east();
+        }
+
+        // Get south tile
+        if (fromTile.y < toTile.y) {
+            nextTile = fromTile.south();
+        }
+
+        // Get west tile
+        if (fromTile.x > toTile.x) {
+            nextTile = fromTile.west();
+        }
+
+        return nextTile;
     }
 
     getTileAt(x, y) {

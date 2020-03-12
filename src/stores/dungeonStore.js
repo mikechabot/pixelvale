@@ -5,10 +5,11 @@ import {getNumberBetween} from '../util/random';
 
 class DungeonStore {
     constructor() {
-        const width = getNumberBetween(20, 20);
-        const height = getNumberBetween(20, 20);
+        // const width = getNumberBetween(20, 20);
+        // const height = getNumberBetween(20, 20);
 
-        this.world = new World(width, height);
+        this.world = new World(60, 35);
+        this.rooms = this.world.rooms;
     }
 
     getTileAt(x, y) {
@@ -25,4 +26,5 @@ class DungeonStore {
 
 export default decorate(DungeonStore, {
     world: observable,
+    rooms: observable
 });
