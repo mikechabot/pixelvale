@@ -1,53 +1,40 @@
-import * as PIXI from 'pixi.js';
+import Food from './domain/Food';
 
-import {contain, getRandomDirection} from './util';
+import {MAX_FOOD} from './const';
+import {isSpriteWithinRangeOfFood} from './util/sprite';
 
-const {Text, TextStyle} = PIXI;
+let ticks = 0;
 
-let messages = {};
-let directions = {};
+const throttle = () => ticks % 120 !== 0;
 
-const style = new TextStyle({
-    fontFamily: 'Consolas',
-    fontSize: 12,
-});
+const gameLoop = (app, monsters, foods) => {
 
-const isWithinRange = (sprite, point, range) => {
-    const x = Math.floor(sprite.x);
-    const y = Math.floor(sprite.y);
+    // ticks++;
+    // if (throttle()) {
+    //     return;
+    // }
 
-    const isXWithin = x <= (point.x + range) && x >= (point.x - range);
-    const isYWithin = y <= (point.y + range) && y >= (point.y - range);
+    const countOfActiveFood = Object
+        .keys(foods)
+        .filter(key => foods[key])
+        .length;
 
-    return isXWithin && isYWithin;
-};
+    if (countOfActiveFood < MAX_FOOD) {
+        const food = new Food();
+        foods[food.getGuid()] = food;
+        app.stage.addChild(food.getSprite());
+    }
 
-const gameLoop = (delta, rockets, app) => {
-    rockets.forEach((rocket, i) => {
+    monsters.forEach((monster) => {
+        const food = monster.getClosestFood(foods);
 
-        if (!directions[i]) {
-            directions[i] = getRandomDirection(rocket);
+        if (!food) return;
 
-            const {destination, radians} = directions[i];
+        monster.moveToFood(food);
 
-            rocket.rotation = radians;
-
-            messages[i] = new Text(`[${i}]`, style);
-            messages[i].position.set(destination.x, destination.y);
-            messages[i].anchor.x = 0.5;
-            messages[i].anchor.y = 0.5;
-
-            app.stage.addChild(messages[i]);
-        }
-
-        const {destination, incrementX, incrementY} = directions[i];
-
-        rocket.x += incrementX;
-        rocket.y += incrementY;
-
-        if (isWithinRange(rocket, destination, 5)) {
-            app.stage.removeChild(messages[i]);
-            directions[i] = null;
+        if (isSpriteWithinRangeOfFood(monster, food)) {
+            app.stage.removeChild(food.getSprite());
+            foods[food.getGuid()] = null;
         }
     });
 };

@@ -1,33 +1,37 @@
 import * as PIXI from 'pixi.js';
 
+import Food from './domain/Food';
+import Monster from './domain/Monster';
+
 import gameLoop from './gameLoop';
 
-const {Sprite, Rectangle, utils: {TextureCache}} = PIXI;
+import {MAX_FOOD, MAX_MONSTERS} from './const';
+import {getMonsterSprite} from './util/sprite';
 
-const ROCKETS = 2;
+
+const {utils: {TextureCache}} = PIXI;
 
 export const setup = (app) => {
-    const baseTexture = TextureCache['tileset'];
+    const baseTexture = TextureCache['monster'];
 
-    let rockets = [];
-    for (let i=0; i < ROCKETS; i++) {
-        const texture =  baseTexture.clone();
-        const rectangle = new Rectangle(192, 128, 64, 64);
+    const foods = {};
+    const monsters = [];
 
-        texture.frame = rectangle;
+    for (let i = 0; i < MAX_MONSTERS; i++) {
+        const sprite = getMonsterSprite(baseTexture);
 
-        const rocket = new Sprite(texture);
-        rocket.anchor.x = 0.5;
-        rocket.anchor.y = 0.5;
-        rocket.x = 0;
-        rocket.y = 0;
+        const monster = new Monster(sprite);
+        monsters.push(monster);
+        app.stage.addChild(monster.getSprite());
+    }
 
-        rockets.push(rocket);
-
-        app.stage.addChild(rocket);
+    for (let i = 0; i < MAX_FOOD; i++) {
+        const food = new Food();
+        foods[food.getGuid()] = food;
+        app.stage.addChild(food.getSprite());
     }
 
     app.renderer.render(app.stage);
 
-    app.ticker.add(delta => gameLoop(delta, rockets, app));
+    app.ticker.add(() => gameLoop(app, monsters, foods));
 };

@@ -1,94 +1,55 @@
-import * as PIXI from 'pixi.js';
 import Chance from 'chance';
 
 import {dimensions} from '../const';
+import Point from '../domain/Point';
 
 const chance = new Chance();
 
 const DEFAULT_MIN = 0;
 const DEFAULT_MAX = Number.MAX_SAFE_INTEGER;
 
-const SPEED = 5;
-
-const COLLISION_MAP = {
-    LEFT: 'left',
-    RIGHT: 'right',
-    TOP: 'top',
-    BOTTOM: 'bottom',
-};
-
 export const getNumberBetween = (min = DEFAULT_MIN, max = DEFAULT_MAX) => (
     chance.natural({min, max})
 );
 
+export const getRandomGuid = () => chance.guid({version: 4});
+
+/**
+ * Get a random point on the canvas
+ * @returns {Point}
+ */
 export const getPointOnCanvas = () => {
-    return {
-        x: getNumberBetween(0, dimensions.width),
-        y: getNumberBetween(0, dimensions.height),
-    };
-};
-
-export const getRandomDirection = (sprite) => {
-
-    const destination = getPointOnCanvas();
-
-    const distanceX = destination.x - sprite.x;
-    const distanceY = destination.y - sprite.y;
-
-    const radians = Math.atan2(distanceY, distanceX);
-
-    const incrementX = Math.cos(radians) * SPEED;
-    const incrementY = Math.sin(radians) * SPEED;
-
-    return {destination, radians, incrementX, incrementY};
+    return new Point(
+        getNumberBetween(0, dimensions.width),
+        getNumberBetween(0, dimensions.height)
+    );
 };
 
 /**
- * Contain a sprite within a container
- * @param sprite
- * @param container
- * @returns {string}
+ * Get the distance between two points
+ * @param p1
+ * @param p2
+ * @returns {number}
  */
+export const getDistance = (p1, p2) => {
+    const distanceX = p1.getX() - p2.getX();
+    const distanceY = p1.getY() - p2.getY();
+    return Math.sqrt(Math.pow(distanceX,2) + Math.pow(distanceY, 2));
+};
 
+export const getDirectionsFromDynamicSpriteToStaticSprite = (spriteA, food) => {
+    const monsterPoint = spriteA.getPoint();
+    const foodPoint = food.getPoint();
 
+    const distanceX = foodPoint.x - monsterPoint.getX();
+    const distanceY = foodPoint.y - monsterPoint.getY();
 
-export const contain = sprite => {
-    let collision;
+    const radians = Math.atan2(distanceY, distanceX);
 
-    //Left
-    if (sprite.x < 0) {
-        sprite.x = 0;
-        collision = COLLISION_MAP.LEFT;
-    }
+    const incrementX = Math.cos(radians) * spriteA.getSpeed();
+    const incrementY = Math.sin(radians) * spriteA.getSpeed();
 
-    //Top
-    if (sprite.y < 0) {
-        sprite.y = 0;
-        collision = COLLISION_MAP.TOP;
-    }
-
-    //Right
-    if (sprite.x + sprite.width > dimensions.width) {
-        sprite.x = dimensions.width - sprite.width;
-        collision = COLLISION_MAP.RIGHT;
-    }
-
-    //Bottom
-    if (sprite.y + sprite.height > dimensions.height) {
-        sprite.y = dimensions.height - sprite.height;
-        collision = COLLISION_MAP.BOTTOM;
-    }
-
-    // if (collision === COLLISION_MAP.LEFT || collision === COLLISION_MAP.RIGHT) {
-    //     sprite.vx = sprite.vx * -1;
-    // }
-    //
-    // if (collision === COLLISION_MAP.TOP || collision === COLLISION_MAP.BOTTOM) {
-    //     sprite.vy = sprite.vy * -1;
-    // }
-
-    //Return the `collision` value
-    return collision;
+    return {radians, incrementX, incrementY};
 };
 
 /**

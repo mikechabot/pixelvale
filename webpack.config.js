@@ -5,34 +5,34 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 
 module.exports = {
-  	entry: './src/index.js',
-	mode: 'development',
-	output: {
-		filename: '[name].bundle.js',
-     	path: path.resolve(__dirname, 'dist'),
- 	},
- 	devtool: 'inline-source-map',
- 	devServer: {
- 		 contentBase: './dist',
-	},
-	plugins: [
-		new CleanWebpackPlugin(),
-		new HtmlWebpackPlugin({
-			title: 'Development',
-			template: 'index.html',
-		}),
-		new CopyPlugin([
-	      { from: './images', to: './images' },
-    	]),
-	],
-	module: {
-		rules: [
-			{
-				test: /\.(png|svg|jpg|gif)$/,
-				 use: [
-				  'file-loader',
-				 ]
-			}
-		]
-	}
+    entry: './src/index.js',
+    mode: 'development',
+    output: {
+        filename: '[name].bundle.js',
+        path: path.resolve(__dirname, 'dist'),
+    },
+    devtool: 'inline-source-map',
+    devServer: {
+        contentBase: './dist',
+    },
+    plugins: [
+        new CleanWebpackPlugin(),
+        new HtmlWebpackPlugin({
+            title: 'Development',
+            template: 'index.html',
+        }),
+        new CopyPlugin([
+            { from: './src/app/images', to: './images' },
+        ]),
+    ],
+    module: {
+        rules: [
+            {
+                test: /\.(png|svg|jpg|gif)$/,
+                use: [
+                    'file-loader',
+                ]
+            }
+        ]
+    }
 };

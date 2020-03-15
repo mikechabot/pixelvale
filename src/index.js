@@ -3,8 +3,6 @@ import {dimensions} from './app/const';
 
 const {view} = createPixiApplication();
 
-
-
 const container = document.createElement('div');
 container.id = 'pixelvale';
 container.style.border = '1px solid red';
