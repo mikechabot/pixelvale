@@ -1,12 +1,16 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import './index.scss';
-import Pixelvale from './components/index';
-import * as serviceWorker from './serviceWorker';
+import {createPixiApplication} from './app';
+import {dimensions} from './app/const';
 
-ReactDOM.render(<Pixelvale />, document.getElementById('root'));
+const {view} = createPixiApplication();
 
-// If you want your app to work offline and load faster, you can change
-// unregister() to register() below. Note this comes with some pitfalls.
-// Learn more about service workers: https://bit.ly/CRA-PWA
-serviceWorker.unregister();
+
+
+const container = document.createElement('div');
+container.id = 'pixelvale';
+container.style.border = '1px solid red';
+container.style.width = `${dimensions.width}px`;
+container.style.height = `${dimensions.height}px`;
+
+container.appendChild(view);
+
+document.body.appendChild(container);
