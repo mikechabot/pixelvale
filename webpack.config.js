@@ -18,6 +18,7 @@ module.exports = {
     plugins: [
         new CleanWebpackPlugin(),
         new HtmlWebpackPlugin({
+            inject: 'body',
             title: 'Development',
             template: 'index.html',
         }),

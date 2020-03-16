@@ -1,14 +1,15 @@
 import Sprite from './Sprite';
 
-import {getDistance, getNumberBetween} from '../util';
+import {getDistance, getSpriteSpeed, getPointOnCanvas} from '../util';
 
-import {SPRITE_SPEED} from '../const';
 import Point from './Point';
 
 class DynamicSprite extends Sprite {
     constructor(sprite) {
         super(sprite);
-        this.speed = this.speed = getNumberBetween(1, SPRITE_SPEED);
+        this.speed = this.speed = getSpriteSpeed();
+        this.navigateRandomly = false;
+        this.randomPoint = null;
     }
 
     getSpeed() {
@@ -23,13 +24,27 @@ class DynamicSprite extends Sprite {
         return this.sprite.y;
     }
 
+    isNavigatingRandomly() {
+        return this.navigateRandomly;
+    }
+
+    getRandomPoint() {
+        return this.randomPoint;
+    }
+
     getPoint() {
         return new Point(this.getX(), this.getY());
     }
 
     getDirectionsToSprite(sprite) {
-        const distanceX = sprite.getX() - this.getX();
-        const distanceY = sprite.getY() - this.getY();
+        return this.getDirectionsToPoint(
+            new Point(sprite.getX(), sprite.getY())
+        );
+    }
+
+    getDirectionsToPoint(point) {
+        const distanceX = point.getX() - this.getX();
+        const distanceY = point.getY() - this.getY();
 
         const radians = Math.atan2(distanceY, distanceX);
 
@@ -39,7 +54,18 @@ class DynamicSprite extends Sprite {
         return {radians, incrementX, incrementY};
     }
 
-    moveTo(direction) {
+    stopMovingRandomly() {
+        this.navigateRandomly = false;
+        this.randomPoint = null;
+    }
+
+    moveRandomly() {
+        const point = getPointOnCanvas();
+        this.navigateRandomly = true;
+        this.randomPoint = point;
+    }
+
+    moveToDirection(direction) {
         const {radians, incrementX, incrementY} = direction;
 
         this.sprite.rotation = radians;
@@ -47,8 +73,23 @@ class DynamicSprite extends Sprite {
         this.sprite.y += incrementY;
     }
 
+    moveToPoint(point) {
+        const directions = this.getDirectionsToPoint(point);
+        this.moveToDirection(directions);
+    }
+
     getDistanceToSprite(sprite) {
         return getDistance(this.getPoint(), sprite.getPoint());
+    }
+
+    handleRandomMovement() {
+        if (!this.isNavigatingRandomly()) {
+            this.moveRandomly();
+        } else if (this.isWithinRangeOfPoint(this.getRandomPoint())) {
+            this.stopMovingRandomly();
+        } else {
+            this.moveToPoint(this.getRandomPoint());
+        }
     }
 }
 

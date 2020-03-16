@@ -1,28 +1,40 @@
 import * as PIXI from 'pixi.js';
 
-import {getNumberBetween, getPointOnCanvas} from './index';
-import {dimensions, RANGE_TO_FOOD} from '../const';
+import {getNumberBetween, getPointOnCanvas, pickOne} from './index';
+import {dimensions, SPRITE_SPEEDS} from '../const';
+import Monster from '../domain/Monster';
 
-const {Rectangle, Sprite, Text, TextStyle} = PIXI;
+const {Container, Rectangle, Sprite, Text, TextStyle} = PIXI;
 
 const style = new TextStyle({
     fontFamily: 'Consolas',
     fontSize: 12,
 });
 
-export const getFoodSprite = () => {
+const titleStyle = new TextStyle({
+    fontFamily: 'Consolas',
+    fontSize: 16,
+    fontWeight: 'bold',
+});
+
+export const getFoodSprite = (foodSpriteMap) => {
     const point = getPointOnCanvas();
 
-    const sprite = new Text('FOOD', style);
-    sprite.position.set(point.x, point.y);
-    sprite.anchor.x = 0.5;
-    sprite.anchor.y = 0.5;
+    const texture = foodSpriteMap.clone();
+    const rectangle = new Rectangle(0, 64, 16, 16);
 
-    return sprite;
+    texture.frame = rectangle;
+
+    const food = new Sprite(texture);
+    food.position.set(point.x, point.y);
+    food.anchor.x = 0.5;
+    food.anchor.y = 0.5;
+
+    return food;
 };
 
-export const getMonsterSprite = (baseTexture) => {
-    const texture =  baseTexture.clone();
+export const getMonsterSprite = (monsterSpriteMap) => {
+    const texture =  monsterSpriteMap.clone();
     const rectangle = new Rectangle(1, 33, 32, 32);
 
     texture.frame = rectangle;
@@ -30,30 +42,59 @@ export const getMonsterSprite = (baseTexture) => {
     const monster = new Sprite(texture);
     monster.anchor.x = 0.5;
     monster.anchor.y = 0.5;
-    monster.x = getNumberBetween(0, dimensions.width);
-    monster.y = getNumberBetween(0, dimensions.height);
+    monster.x = 0;
+    monster.y = 0;
 
     return monster;
 };
 
-export const setMonsterState = (monster, directions) => {
-    const {radians, incrementX, incrementY} = directions;
+export const getMonsterContainer = (monsterSpriteMap, parentMonster) => {
+    const monsterContainer = new Container();
 
-    const sprite = monster.getSprite();
+    monsterContainer.position.set(
+        getNumberBetween(0, dimensions.width),
+        getNumberBetween(0, dimensions.height)
+    );
 
-    sprite.rotation = radians;
-    sprite.x += incrementX;
-    sprite.y += incrementY;
+    // Get monster sprite
+    const sprite = getMonsterSprite(monsterSpriteMap);
+
+    // Instantiate Monster class
+    const monster = new Monster(sprite, monsterContainer);
+
+    if (parentMonster) {
+        const speedIndex = SPRITE_SPEEDS.indexOf(parentMonster.getSpeed());
+
+        const bottomIndex = !SPRITE_SPEEDS[speedIndex - 2] ? 0 : speedIndex - 2;
+        const topIndex = !SPRITE_SPEEDS[speedIndex + 2] ? SPRITE_SPEEDS.length : speedIndex + 2;
+
+        const speeds = SPRITE_SPEEDS.slice(bottomIndex, topIndex);
+
+        monster.speed = pickOne(speeds);
+
+        console.log(parentMonster.getSpeed(), monster.getSpeed());
+    }
+
+    // Add monster sprite to container
+    monsterContainer.addChild(monster.getSprite());
+
+    const energy = new Text(`Energy: ${monster.getEnergy()}`, style);
+    energy.position.set(-16, 16);
+
+    const speed = new Text(`Speed: ${monster.getSpeed()}`, style);
+    speed.position.set(-16, 32);
+
+    monsterContainer.addChild(energy);
+    monsterContainer.addChild(speed);
+
+    return {
+        monster,
+        monsterContainer
+    };
 };
 
-export const isSpriteWithinRangeOfFood = (monster, food) => {
-    const monsterPoint = monster.getPoint();
-
-    const x = Math.floor(monsterPoint.x);
-    const y = Math.floor(monsterPoint.y);
-
-    const isXWithin = x <= (food.getX() + RANGE_TO_FOOD) && x >= (food.getX() - RANGE_TO_FOOD);
-    const isYWithin = y <= (food.getY() + RANGE_TO_FOOD) && y >= (food.getY() - RANGE_TO_FOOD);
-
-    return isXWithin && isYWithin;
+export const getTitle = monsters => {
+    const title = new Text(`Monsters: ${monsters.length}`, titleStyle);
+    title.position.set((dimensions.width / 2) - title.width, 10);
+    return title;
 };

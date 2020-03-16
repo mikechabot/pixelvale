@@ -1,37 +1,67 @@
 import * as PIXI from 'pixi.js';
 
 import Food from './domain/Food';
-import Monster from './domain/Monster';
 
-import gameLoop from './gameLoop';
+import loop from './loop';
 
-import {MAX_FOOD, MAX_MONSTERS} from './const';
-import {getMonsterSprite} from './util/sprite';
+import {INITIAL_FOOD, MAX_MONSTERS} from './const';
 
+import {getMonsterContainer, getTitle} from './util/sprite';
+import {
+    buildMonsterCountChart,
+    buildMonsterSpeedChart,
+    updateMonsterCountChart,
+    updateMonsterSpeedChart
+} from './util/chart';
 
 const {utils: {TextureCache}} = PIXI;
 
 export const setup = (app) => {
-    const baseTexture = TextureCache['monster'];
+    const monsterSpriteMap = TextureCache['monster'];
+    const foodSpriteMap = TextureCache['food'];
 
     const foods = {};
     const monsters = [];
 
-    for (let i = 0; i < MAX_MONSTERS; i++) {
-        const sprite = getMonsterSprite(baseTexture);
+    const monsterSpeedChart = buildMonsterSpeedChart();
+    const monsterEnergyChart = buildMonsterCountChart();
 
-        const monster = new Monster(sprite);
+    // Create monster sprites
+    for (let i = 0; i < MAX_MONSTERS; i++) {
+        const {monster, monsterContainer} = getMonsterContainer(monsterSpriteMap);
+
+        // Add monster class to monsters array
         monsters.push(monster);
-        app.stage.addChild(monster.getSprite());
+
+        // Add monsterContainer to stage
+        app.stage.addChild(monsterContainer);
     }
 
-    for (let i = 0; i < MAX_FOOD; i++) {
-        const food = new Food();
+    // Update the chart with the latest monster numbers
+    updateMonsterSpeedChart(monsterSpeedChart, monsters);
+    updateMonsterCountChart(monsterEnergyChart, monsters);
+
+    // Create food sprites
+    for (let i = 0; i < INITIAL_FOOD; i++) {
+        const food = new Food(foodSpriteMap);
         foods[food.getGuid()] = food;
         app.stage.addChild(food.getSprite());
     }
 
+    const title = getTitle(monsters);
+
+    app.stage.addChild(title);
     app.renderer.render(app.stage);
 
-    app.ticker.add(() => gameLoop(app, monsters, foods));
+    app.ticker.add(() => {
+        loop(
+            app,
+            monsters,
+            foods,
+            title,
+            monsterSpriteMap,
+            foodSpriteMap,
+            {monsterSpeedChart, monsterEnergyChart}
+        );
+    });
 };

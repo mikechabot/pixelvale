@@ -4,7 +4,6 @@ import {getRandomGuid} from '../util';
 class Sprite {
     constructor(sprite) {
         this.sprite = sprite;
-        this.point = new Point(sprite.x, sprite.y);
         this.guid = getRandomGuid();
     }
 
@@ -17,15 +16,15 @@ class Sprite {
     }
 
     getX() {
-        return this.point.getX();
+        return this.sprite.x;
     }
 
     getY() {
-        return this.point.getY();
+        return this.sprite.y;
     }
 
     getPoint() {
-        return this.point;
+        return new Point(this.getX(), this.getY());
     }
 }
 

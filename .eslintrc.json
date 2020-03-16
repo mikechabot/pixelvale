@@ -5,6 +5,7 @@
     },
     "extends": "eslint:recommended",
     "globals": {
+        "CanvasJS": false,
         "Atomics": "readonly",
         "SharedArrayBuffer": "readonly"
     },
