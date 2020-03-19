@@ -1,7 +1,6 @@
 import DynamicContainerSprite from './DynamicContainerSprite';
 
-import {RANGE_TO_FOOD} from '../const';
-import {getNumberBetween} from '../util';
+import {DEATH_CHANCE, energyModifier, RANGE_TO_FOOD, REPRODUCE_CHANCE} from '../const';
 
 class Monster extends DynamicContainerSprite {
     constructor(sprite, container) {
@@ -29,11 +28,11 @@ class Monster extends DynamicContainerSprite {
     }
 
     shouldReproduce() {
-        return this.energy > 75 && Math.random() < 0.30;
+        return this.energy > 75 && Math.random() < REPRODUCE_CHANCE;
     }
 
     shouldDie() {
-        return this.getEnergy() <= 0 || Math.random() < 0.0005;
+        return this.getEnergy() <= 0 || Math.random() < DEATH_CHANCE;
     }
 
     die() {
@@ -48,7 +47,7 @@ class Monster extends DynamicContainerSprite {
     }
 
     eatFood() {
-        let tempEnergy = this.getEnergy() + 3;
+        let tempEnergy = this.getEnergy() + energyModifier(this);
         if (tempEnergy > 100) {
             tempEnergy = 100;
         }
@@ -58,7 +57,7 @@ class Monster extends DynamicContainerSprite {
     }
 
     expendEnergy() {
-        let tempEnergy = this.getEnergy() - (this.getSpeed() * 2);
+        let tempEnergy = this.getEnergy() - (this.getSpeed());
         if (tempEnergy < 0) {
             tempEnergy = 0;
         }

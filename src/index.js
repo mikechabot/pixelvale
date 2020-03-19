@@ -1,14 +1,14 @@
 import {createPixiApplication} from './app';
-import {dimensions} from './app/const';
 
 const {view} = createPixiApplication();
 
-const container = document.createElement('div');
-container.id = 'pixelvale';
-container.style.border = '1px solid red';
-container.style.width = `${dimensions.width}px`;
-container.style.height = `${dimensions.height}px`;
+const application = document.createElement('div');
+const container = document.getElementById('pixelvale');
 
-container.appendChild(view);
+application.id = 'pixi-application';
+application.style.display = 'flex';
+application.style.justifyContent = 'center';
+application.style.marginTop = '10px';
 
-document.body.appendChild(container);
+application.appendChild(view);
+container.appendChild(application);

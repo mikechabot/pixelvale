@@ -12,11 +12,16 @@ const style = new TextStyle({
 });
 
 const titleStyle = new TextStyle({
-    fontFamily: 'Consolas',
-    fontSize: 16,
+    fontFamily: 'Roboto Condensed',
+    fontSize: 20,
     fontWeight: 'bold',
 });
 
+/**
+ * Create a food sprite
+ * @param foodSpriteMap
+ * @returns {PIXI.Sprite}
+ */
 export const getFoodSprite = (foodSpriteMap) => {
     const point = getPointOnCanvas();
 
@@ -30,9 +35,17 @@ export const getFoodSprite = (foodSpriteMap) => {
     food.anchor.x = 0.5;
     food.anchor.y = 0.5;
 
+    food.scale.x = 0.75;
+    food.scale.y = 0.75;
+
     return food;
 };
 
+/**
+ * Create a monster sprite
+ * @param monsterSpriteMap
+ * @returns {PIXI.Sprite}
+ */
 export const getMonsterSprite = (monsterSpriteMap) => {
     const texture =  monsterSpriteMap.clone();
     const rectangle = new Rectangle(1, 33, 32, 32);
@@ -48,6 +61,14 @@ export const getMonsterSprite = (monsterSpriteMap) => {
     return monster;
 };
 
+/**
+ * Create a container sprite, which holds a monster sprite,
+ * along with textual information like the monster's speed
+ * and energy values
+ * @param monsterSpriteMap
+ * @param parentMonster
+ * @returns {{monster: Monster, monsterContainer: PIXI.Container}}
+ */
 export const getMonsterContainer = (monsterSpriteMap, parentMonster) => {
     const monsterContainer = new Container();
 
@@ -58,6 +79,9 @@ export const getMonsterContainer = (monsterSpriteMap, parentMonster) => {
 
     // Get monster sprite
     const sprite = getMonsterSprite(monsterSpriteMap);
+
+    sprite.scale.x = 0.75;
+    sprite.scale.y = 0.75;
 
     // Instantiate Monster class
     const monster = new Monster(sprite, monsterContainer);
@@ -71,8 +95,7 @@ export const getMonsterContainer = (monsterSpriteMap, parentMonster) => {
         const speeds = SPRITE_SPEEDS.slice(bottomIndex, topIndex);
 
         monster.speed = pickOne(speeds);
-
-        console.log(parentMonster.getSpeed(), monster.getSpeed());
+        monster.energy = 75;
     }
 
     // Add monster sprite to container
@@ -95,6 +118,5 @@ export const getMonsterContainer = (monsterSpriteMap, parentMonster) => {
 
 export const getTitle = monsters => {
     const title = new Text(`Monsters: ${monsters.length}`, titleStyle);
-    title.position.set((dimensions.width / 2) - title.width, 10);
     return title;
 };

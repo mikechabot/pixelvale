@@ -5,14 +5,23 @@
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
   <meta name="viewport" content="width=device-width, initial-scale=1">
 
-  <title>Hello World</title>
+  <title>Pixelvale</title>
+
+  <link href="https://fonts.googleapis.com/css?family=Roboto+Condensed:300,400,700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+  <link rel="stylesheet" href="main.css">
 
   <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 </head>
 <body>
-  <div style="display: flex; width: 1280px">
-    <div id="monsters-by-speed" style="height: 250px; flex: 1"></div>
-    <div id="monsters-energy" style="height: 250px; flex: 1"></div>
+  <div class="section">
+    <div id="pixelvale" class="container">
+      <h1 class="title">Evolution Simulator</h1>
+      <div class="chart-container">
+        <div class="chart" id="monsters-by-speed"></div>
+        <div class="chart" id="monsters-energy"></div>
+      </div>
+    </div>
   </div>
 </body>
 </html>

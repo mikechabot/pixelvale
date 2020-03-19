@@ -1,0 +1,14 @@
+html, body {
+    font-family: 'Roboto Condensed', sans-serif;
+    background-color: #f9f9f9;
+}
+
+.chart-container {
+    display: flex;
+    width: 100%;
+}
+
+.chart-container .chart {
+    height: 250px;
+    flex: 1
+}

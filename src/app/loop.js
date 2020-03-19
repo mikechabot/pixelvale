@@ -1,15 +1,10 @@
-import Food from './domain/Food';
-
-import {MAX_FOOD, MAX_FOOD_PER_DAY, TICKS_PER_DAY, TICKS_PER_EXPENDITURE} from './const';
-import {updateMonsterCountChart, updateMonsterSpeedChart} from './util/chart';
-import {getMonsterContainer} from './util/sprite';
-
-const intervals = {};
-
-const INTERVAL_KEY = {
-    FOOD: 'food',
-    CHART: 'chart',
-};
+import {INITIAL_FOOD, MAX_FOOD, MAX_FOOD_PER_DAY, TICKS_PER_DAY} from './const';
+import {
+    runDisperseFoodInterval,
+    runMonsterEnergyInterval,
+    runMonsterMatingInterval,
+    runUpdateChartInterval
+} from './intervals';
 
 /**
  * Game loop for the Monster sprites
@@ -19,12 +14,23 @@ const INTERVAL_KEY = {
  * @param removeSprite
  */
 const monsterLoop = (monster, foods, addSprite, removeSprite) => {
+    if (monster.isDead()) {
+        return;
+    }
+    /**
+     * Kill off any monsters
+     */
     if (monster.shouldDie()) {
         monster.die();
         setTimeout(() => removeSprite(monster.getContainer()), TICKS_PER_DAY);
         return;
     }
 
+    /**
+     * If the monster isn't full, try to find food,
+     * otherwise just have the monster move randomly
+     * around the canvas
+     */
     if (!monster.isFull()) {
         const food = monster.getClosestFood(foods);
 
@@ -43,101 +49,49 @@ const monsterLoop = (monster, foods, addSprite, removeSprite) => {
     } else {
         monster.handleRandomMovement();
     }
-
-    const guid = monster.getGuid();
-
-    if (!intervals[guid]) {
-        intervals[guid] = setInterval(() => {
-            monster.expendEnergy();
-
-            window.clearInterval(intervals[guid]);
-            intervals[guid] = null;
-        }, TICKS_PER_EXPENDITURE);
-    }
 };
+
+let interval = null;
 
 /**
  * Main game loop
  * @param app
- * @param monsters
- * @param foods
+ * @param utilities
+ * @param sprites
  * @param title
- * @param chart
+ * @param spriteMaps
+ * @param chartMap
  */
-const loop = (app, monsters, foods, title, monsterSpriteMap, foodSpriteMap, chartMap) => {
+const loop = (app, utilities, sprites, title, spriteMaps, chartMap) => {
 
-    function removeSprite(sprite) {
-        sprite.destroy();
-        app.stage.removeChild(sprite);
-    }
+    const {monsters, foods} = sprites;
+    const {addSprite, removeSprite} = utilities;
+    const {monsterSpriteMap, foodSpriteMap} = spriteMaps;
 
-    function addSprite(sprite) {
-        app.stage.addChild(sprite);
-    }
+    runDisperseFoodInterval(foods, foodSpriteMap, addSprite);
 
-    let interval = intervals[INTERVAL_KEY.FOOD];
+    monsters.forEach(m => {
+        monsterLoop(m, foods, addSprite, removeSprite);
+    });
+
+    runMonsterMatingInterval(monsters, monsterSpriteMap, addSprite);
+    runMonsterEnergyInterval(monsters);
+    runUpdateChartInterval(monsters, chartMap);
+
     if (!interval) {
-
-        const countOfActiveFood = Object
-            .keys(foods)
-            .filter(key => foods[key])
-            .length;
-
-        if (countOfActiveFood < MAX_FOOD) {
-            interval = setInterval(() => {
-                for (let i = 0; i < MAX_FOOD_PER_DAY; i++) {
-                    const food = new Food(foodSpriteMap);
-                    foods[food.getGuid()] = food;
-                    addSprite(food.getSprite());
-                }
-
-                window.clearInterval(interval);
-                intervals[INTERVAL_KEY.FOOD] = null;
-
-            }, TICKS_PER_DAY);
-
-            intervals[INTERVAL_KEY.FOOD] = interval;
-        }
-    }
-
-    monsters
-        .filter(monster => !monster.isDead())
-        .forEach(m => {
-            monsterLoop(m, foods, addSprite, removeSprite);
-
-            if (!m.isDead()) {
-                const guid = m.getGuid();
-
-                if (!intervals[`${guid}-mating`]) {
-                    intervals[`${guid}-mating`] = setInterval(() => {
-                        if (m.shouldReproduce()) {
-                            const {monster, monsterContainer} = getMonsterContainer(monsterSpriteMap, m);
-                            monster.energy = 75;
-                            monsters.push(monster);
-
-                            // Add monsterContainer to stage
-                            app.stage.addChild(monsterContainer);
-                        }
-                        window.clearInterval(intervals[`${guid}-mating`]);
-                        intervals[`${guid}-mating`] = null;
-                    }, TICKS_PER_DAY);
-                }
-            }
-        });
-
-
-    title.text = `Monsters: ${monsters.filter(monster => !monster.isDead()).length}`;
-
-    if (!intervals[INTERVAL_KEY.CHART]) {
-        const {monsterSpeedChart, monsterEnergyChart} = chartMap;
-
-        intervals[INTERVAL_KEY.CHART] = setInterval(() => {
-            updateMonsterSpeedChart(monsterSpeedChart, monsters);
-            updateMonsterCountChart(monsterEnergyChart, monsters);
-
-            window.clearInterval(intervals[INTERVAL_KEY.CHART]);
-            intervals[INTERVAL_KEY.CHART] = null;
-        }, TICKS_PER_DAY / 4);
+        interval = setInterval(() => {
+            const undead = monsters.filter(m => !m.isDead());
+            title.text = `
+                Monsters: ${undead.length} 
+                Total: ${monsters.length} 
+                Foods: ${Object.keys(foods).length}
+                InitialFood: ${INITIAL_FOOD}
+                MaxFood: ${MAX_FOOD}
+                MaxFoodPerDay: ${MAX_FOOD_PER_DAY}
+            `;
+            clearInterval(interval);
+            interval = null;
+        }, TICKS_PER_DAY);
     }
 };
 
