@@ -14,7 +14,7 @@ class MonsterStore {
 
     @computed get averageSpeed() {
         const totalSpeed = this.monsters.reduce((acc, cur) => acc + cur.getSpeed(), 0);
-        return totalSpeed / this.count
+        return (totalSpeed / this.count).toFixed(2)
     }
 }
 

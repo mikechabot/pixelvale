@@ -14,9 +14,7 @@ export const getNumberBetween = (min = DEFAULT_MIN, max = DEFAULT_MAX) => (
 
 export const pickOne = (arr) => chance.pickone(arr);
 
-export const getSpriteSpeed = () => (
-    chance.pickone(SPRITE_SPEEDS)
-);
+export const getSpriteSpeed = () => pickOne(SPRITE_SPEEDS);
 
 export const getRandomGuid = () => chance.guid({version: 4});
 

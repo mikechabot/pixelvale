@@ -1,9 +1,14 @@
 {
     "env": {
+        "node": true,
+        "amd": true,
         "browser": true,
         "es6": true
     },
-    "extends": "eslint:recommended",
+    "extends": [
+        "eslint:recommended",
+        "plugin:react/recommended"
+    ],
     "globals": {
         "CanvasJS": false,
         "Atomics": "readonly",

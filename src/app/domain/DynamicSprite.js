@@ -7,7 +7,7 @@ import Point from './Point';
 class DynamicSprite extends Sprite {
     constructor(sprite) {
         super(sprite);
-        this.speed = this.speed = getSpriteSpeed();
+        this.speed = getSpriteSpeed();
         this.navigateRandomly = false;
         this.randomPoint = null;
     }

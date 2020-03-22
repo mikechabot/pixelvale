@@ -21,7 +21,6 @@ module.exports = {
         new MiniCssExtractPlugin(),
         new HtmlWebpackPlugin({
             inject: 'body',
-            title: 'Development',
             template: 'index.html',
         }),
         new CopyPlugin([
@@ -31,11 +30,9 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.m?js$/,
+                test: /\.m?(js|jsx)$/,
                 exclude: /(node_modules)/,
-                use: {
-                    loader: 'babel-loader',
-                }
+                use: ['babel-loader'],
             },
             {
                 test: /\.(png|svg|jpg|gif)$/,

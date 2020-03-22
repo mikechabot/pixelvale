@@ -66,14 +66,16 @@ export const updateMonsterSpeedChart = (chart, monsters) => {
  * @param chart
  * @param monsters
  */
+
+let ticks = 0;
 export const updateMonsterCountChart = (chart, monsters) => {
-    const date = new Date();
+    ticks++;
 
     /**
      * Set up axis 1
      */
     chart.data[0].dataPoints.push({
-        x: date,
+        x: ticks,
         y: monsters.length
     });
 
@@ -83,7 +85,7 @@ export const updateMonsterCountChart = (chart, monsters) => {
      * Set up axis 2
      */
     chart.data[1].dataPoints.push({
-        x: date,
+        x: ticks,
         y: totalSpeed / monsters.length
     });
 

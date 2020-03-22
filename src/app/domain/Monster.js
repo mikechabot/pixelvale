@@ -36,14 +36,15 @@ class Monster extends DynamicContainerSprite {
     }
 
     die() {
-        console.log('%c Monster has died', 'color: red;');
         this.getSprite().tint = 0xD73232;
         this.dead = true;
     }
 
     updateEnergyText() {
         const textSprite = this.container.children[1];
-        textSprite.text = `Energy: ${this.energy}`;
+        if (textSprite) {
+            textSprite.text = `Energy: ${this.energy}`;
+        }
     }
 
     eatFood() {

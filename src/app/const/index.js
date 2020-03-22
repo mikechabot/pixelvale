@@ -65,7 +65,7 @@ export const SPRITE_SPEEDS = [
 export const DEATH_CHANCE =  0.05;
 export const REPRODUCE_CHANCE = 0.1;
 
-export const energyModifier = monster => 3;
+export const energyModifier = monster => Math.ceil(monster.getSpeed() / 2); // Or just 3
 
 export const MAX_MONSTERS = 30;
 export const INITIAL_FOOD = MAX_MONSTERS * 10;

@@ -1,48 +1,31 @@
+import React from 'react';
+import ReactDOM from 'react-dom';
 import * as PIXI from 'pixi.js';
 
+import PixelvaleStats from './components';
 import RootStore from './stores/rootStore';
-import Food from './domain/Food';
 
 import loop from './loop';
 
-import {INITIAL_FOOD, MAX_MONSTERS, SPRITE_KEY} from './const';
+import {StoreProvider} from './stores/useStore';
+import {buildFoodSprites, buildMonsterSprites} from './util/sprite';
 
-import {getMonsterContainer} from './util/sprite';
-
+import {SPRITE_KEY} from './const';
 
 const {utils: {TextureCache}} = PIXI;
 
-/**
- * Build the monster sprites
- * @param spriteMap
- * @returns {{monsters: [], monsterContainers: []}}
- */
-const buildMonsterSprites = (spriteMap) => {
-    const monsters = [];
-    const monsterContainers = [];
+let pause = false;
 
-    for (let i = 0; i < MAX_MONSTERS; i++) {
-        const {monster, monsterContainer} = getMonsterContainer(spriteMap);
-        monsters.push(monster);
-        monsterContainers.push(monsterContainer);
+const actionButton = document.getElementById('action');
+actionButton.addEventListener('click', () => {
+    if (!pause) {
+        pause = true;
+        actionButton.innerText = 'Start';
+    } else {
+        pause = false;
+        actionButton.innerText = 'Pause';
     }
-
-    return {monsters, monsterContainers};
-};
-
-/**
- * Build the food sprites
- * @param spriteMap
- * @returns {[]}
- */
-const buildFoodSprites = (spriteMap) => {
-    const foods = [];
-    for (let i = 0; i < INITIAL_FOOD; i++) {
-        const food = new Food(spriteMap);
-        foods.push(food);
-    }
-    return foods;
-};
+});
 
 export const setup = (app) => {
 
@@ -85,22 +68,18 @@ export const setup = (app) => {
 
     app.renderer.render(app.stage);
 
-    let pause = false;
-    const initialFood = document.getElementById('action');
-    initialFood.addEventListener('click', () => {
-        if (!pause) {
-            pause = true;
-            initialFood.innerText = 'Start';
-        } else {
-            pause = false;
-            initialFood.innerText = 'Pause';
-        }
-    });
-
     const spriteMaps = {monsterSpriteMap, foodSpriteMap};
     const utilities = {addSprite, removeSprite};
 
     const store = new RootStore(monsters, foods);
+
+    const rootElement = document.getElementById('react-root');
+    ReactDOM.render(
+        <StoreProvider rootStore={store}>
+            <PixelvaleStats/>
+        </StoreProvider>,
+        rootElement
+    );
 
     app.ticker.add(() => {
         if (!pause) {

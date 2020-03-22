@@ -1,21 +1,11 @@
 import * as PIXI from 'pixi.js';
 
 import {getNumberBetween, getPointOnCanvas, pickOne} from './index';
-import {dimensions, SPRITE_SPEEDS} from '../const';
+import {dimensions, INITIAL_FOOD, MAX_MONSTERS, SPRITE_SPEEDS} from '../const';
 import Monster from '../domain/Monster';
+import Food from '../domain/Food';
 
-const {Container, Rectangle, Sprite, Text, TextStyle} = PIXI;
-
-const style = new TextStyle({
-    fontFamily: 'Consolas',
-    fontSize: 12,
-});
-
-const titleStyle = new TextStyle({
-    fontFamily: 'Roboto Condensed',
-    fontSize: 20,
-    fontWeight: 'bold',
-});
+const {Container, Rectangle, Sprite} = PIXI;
 
 /**
  * Create a food sprite
@@ -101,14 +91,14 @@ export const getMonsterContainer = (monsterSpriteMap, parentMonster) => {
     // Add monster sprite to container
     monsterContainer.addChild(monster.getSprite());
 
-    const energy = new Text(`Energy: ${monster.getEnergy()}`, style);
-    energy.position.set(-16, 16);
-
-    const speed = new Text(`Speed: ${monster.getSpeed()}`, style);
-    speed.position.set(-16, 32);
-
-    monsterContainer.addChild(energy);
-    monsterContainer.addChild(speed);
+    // const energy = new Text(`Energy: ${monster.getEnergy()}`, style);
+    // energy.position.set(-16, 16);
+    //
+    // const speed = new Text(`Speed: ${monster.getSpeed().toFixed(2)}`, style);
+    // speed.position.set(-16, 32);
+    //
+    // monsterContainer.addChild(energy);
+    // monsterContainer.addChild(speed);
 
     return {
         monster,
@@ -116,7 +106,35 @@ export const getMonsterContainer = (monsterSpriteMap, parentMonster) => {
     };
 };
 
-export const getTitle = monsters => {
-    const title = new Text(`Monsters: ${monsters.length}`, titleStyle);
-    return title;
+/**
+ * Build the monster sprites
+ * @param spriteMap
+ * @returns {{monsters: [], monsterContainers: []}}
+ */
+export const buildMonsterSprites = (spriteMap) => {
+    const monsters = [];
+    const monsterContainers = [];
+
+    for (let i = 0; i < MAX_MONSTERS; i++) {
+        const {monster, monsterContainer} = getMonsterContainer(spriteMap);
+        monsters.push(monster);
+        monsterContainers.push(monsterContainer);
+    }
+
+    return {monsters, monsterContainers};
+};
+
+
+/**
+ * Build the food sprites
+ * @param spriteMap
+ * @returns {[]}
+ */
+export const buildFoodSprites = (spriteMap) => {
+    const foods = [];
+    for (let i = 0; i < INITIAL_FOOD; i++) {
+        const food = new Food(spriteMap);
+        foods.push(food);
+    }
+    return foods;
 };

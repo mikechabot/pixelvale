@@ -18,7 +18,6 @@ export const createPixiApplication = () => {
         height: dimensions.height,
         antialias: true,
         backgroundColor: 0xECECEC,
-
     });
 
     const {loader} = app;

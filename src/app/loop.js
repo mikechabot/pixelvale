@@ -5,43 +5,6 @@ import {
 } from './intervals';
 
 /**
- * Game loop for the Monster sprites
- * @param monster
- * @param foods
- * @param addSprite
- * @param removeSprite
- */
-const monsterLoop = (monster, foods, addSprite, removeSprite) => {
-    if (monster.isDead()) {
-        return;
-    }
-
-    /**
-     * If the monster isn't full, try to find food,
-     * otherwise just have the monster move randomly
-     * around the canvas
-     */
-    if (!monster.isFull()) {
-        const {food, index} = monster.getClosestFood(foods);
-
-        if (food) {
-            monster.moveToFood(food);
-
-            if (monster.isWithinRangeOfPoint(food)) {
-                monster.eatFood();
-
-                removeSprite(food.getSprite());
-                foods.splice(index, 1);
-            }
-        } else {
-            monster.handleRandomMovement();
-        }
-    } else {
-        monster.handleRandomMovement();
-    }
-};
-
-/**
  * Main game loop
  * @param app
  * @param utilities
@@ -51,18 +14,41 @@ const monsterLoop = (monster, foods, addSprite, removeSprite) => {
  */
 const loop = (app, utilities, store, spriteMaps) => {
 
-    const {monsterStore, foodStore} = store;
     const {addSprite, removeSprite} = utilities;
     const {monsterSpriteMap, foodSpriteMap} = spriteMaps;
+    const {monsterStore: {monsters}, foodStore: {foods}} = store;
 
-    runDisperseFoodInterval(foodStore.foods, foodSpriteMap, addSprite);
+    runDisperseFoodInterval(foods, foodSpriteMap, addSprite);
 
-    monsterStore.monsters.forEach(m => {
-        monsterLoop(m, foodStore.foods, addSprite, removeSprite);
+    monsters.forEach(m => {
+        if (m.isDead()) {
+            return;
+        }
+
+        if (m.isFull()) {
+            m.handleRandomMovement();
+            return;
+        }
+
+        const {food, index} = m.getClosestFood(foods);
+
+        if (!food) {
+            m.handleRandomMovement();
+            return;
+        }
+
+        m.moveToFood(food);
+
+        if (m.isCollidingWithSprite(food)) {
+            m.eatFood();
+
+            removeSprite(food.getSprite());
+            foods.splice(index, 1);
+        }
     });
 
-    runMonsterDieOrReproduceInterval(monsterStore.monsters, monsterSpriteMap, addSprite, removeSprite);
-    runMonsterEnergyInterval(monsterStore.monsters);
+    runMonsterDieOrReproduceInterval(monsters, monsterSpriteMap, addSprite, removeSprite);
+    runMonsterEnergyInterval(monsters);
 };
 
 export default loop;
