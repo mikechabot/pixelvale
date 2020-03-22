@@ -62,13 +62,13 @@ export const SPRITE_SPEEDS = [
 // export const TICKS_PER_DAY = 500;
 // export const TICKS_PER_EXPENDITURE = TICKS_PER_DAY / 2;
 
-export const DEATH_CHANCE =  0.0005;
-export const REPRODUCE_CHANCE = 0.30;
+export const DEATH_CHANCE =  0.05;
+export const REPRODUCE_CHANCE = 0.1;
 
-export const energyModifier = monster => Math.ceil(monster.getSpeed() / 3);
+export const energyModifier = monster => 3;
 
-export const MAX_MONSTERS = 20;
-export const INITIAL_FOOD = MAX_MONSTERS * 20;
+export const MAX_MONSTERS = 30;
+export const INITIAL_FOOD = MAX_MONSTERS * 10;
 export const MAX_FOOD_PER_DAY = INITIAL_FOOD / 2;
 export const MAX_FOOD = INITIAL_FOOD * 1.5;
 

@@ -1,11 +1,7 @@
-import groupBy from 'lodash/groupBy';
-
 import {monsterCountConfig, monsterSpeedConfig} from './config';
-import {TICKS_PER_DAY} from '../const';
+import {SPRITE_SPEEDS} from '../const';
 
-const Index = CanvasJS.Chart;
-
-let interval = null;
+const Chart = CanvasJS.Chart;
 
 /**
  * Build the charts and hydrate it with data
@@ -30,7 +26,7 @@ export const buildCharts = monsters => {
  * @returns {CanvasJS.Chart}
  */
 export const buildMonsterCountChart = () => {
-    const chart = new Index('monsters-energy', monsterCountConfig);
+    const chart = new Chart('monsters-energy', monsterCountConfig);
     chart.render();
     return chart;
 };
@@ -40,7 +36,7 @@ export const buildMonsterCountChart = () => {
  * @returns {CanvasJS.Chart}
  */
 export const buildMonsterSpeedChart = () => {
-    const chart = new Index('monsters-by-speed', monsterSpeedConfig);
+    const chart = new Chart('monsters-by-speed', monsterSpeedConfig);
     chart.render();
     return chart;
 };
@@ -51,19 +47,14 @@ export const buildMonsterSpeedChart = () => {
  * @param monsters
  */
 export const updateMonsterSpeedChart = (chart, monsters) => {
-    const monstersBySpeed = groupBy(monsters, m => m.getSpeed());
-
     const dataPoints = [];
-    Object
-        .keys(monstersBySpeed)
-        .sort()
-        .forEach(speedKey => {
-            dataPoints.push({
-                label: speedKey,
-                y: monstersBySpeed[speedKey].length
-            });
+    for (let i=0; i < SPRITE_SPEEDS.length; i++) {
+        const monstersAtSpeed = monsters.filter(m => m.getSpeed() === SPRITE_SPEEDS[i]);
+        dataPoints.push({
+            label: SPRITE_SPEEDS[i],
+            y: monstersAtSpeed.length
         });
-
+    }
     // Use the "set" function within CanvasJS to fully update the
     // the dataPoints property
     chart.data[0].set('dataPoints', dataPoints);

@@ -30,6 +30,8 @@ class DynamicContainerSprite extends DynamicSprite {
         this.container.x += incrementX;
         this.container.y += incrementY;
     }
+
+
 }
 
 export default DynamicContainerSprite;

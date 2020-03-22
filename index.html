@@ -16,10 +16,49 @@
 <body>
   <div class="section">
     <div id="pixelvale" class="container">
-      <h1 class="title">Evolution Simulator</h1>
+      <nav class="level">
+        <div class="level-item has-text-centered">
+          <div>
+            <p class="heading">Food Count</p>
+            <p id="food-count-display" class="title">--</p>
+          </div>
+        </div>
+        <div class="level-item has-text-centered">
+          <div>
+            <p class="heading">Monsters Count</p>
+            <p id="monster-count-display" class="title">--</p>
+          </div>
+        </div>
+        <div class="level-item has-text-centered">
+          <div>
+            <p class="heading">Average Speed</p>
+            <p id="monster-avg-speed-display" class="title">--</p>
+          </div>
+        </div>
+      </nav>
       <div class="chart-container">
         <div class="chart" id="monsters-by-speed"></div>
         <div class="chart" id="monsters-energy"></div>
+      </div>
+      <div class="controls">
+        <div class="field">
+          <label class="label">&nbsp;</label>
+          <div class="control">
+            <button id="action" class="button is-dark is-small">Pause</button>
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Monsters</label>
+          <div class="control">
+            <input id="monster-count" class="input is-small" type="number">
+          </div>
+        </div>
+        <div class="field">
+          <label class="label">Initial Food</label>
+          <div class="control">
+            <input id="initial-food" class="input is-small" type="number">
+          </div>
+        </div>
       </div>
     </div>
   </div>

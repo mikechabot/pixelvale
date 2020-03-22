@@ -28,7 +28,7 @@ class Monster extends DynamicContainerSprite {
     }
 
     shouldReproduce() {
-        return this.energy > 75 && Math.random() < REPRODUCE_CHANCE;
+        return this.energy > 50 && Math.random() < REPRODUCE_CHANCE;
     }
 
     shouldDie() {
@@ -66,24 +66,20 @@ class Monster extends DynamicContainerSprite {
     }
 
     getClosestFood(foods) {
-        let closestFood = null;
+        let index = -1;
+        let food = null;
         let closest = Number.MAX_SAFE_INTEGER;
 
-        Object
-            .keys(foods)
-            .filter(key => foods[key])
-            .forEach(key => {
-                const food = foods[key];
-                if (food) {
-                    const distance = this.getDistanceToSprite(food);
-                    if (distance < closest) {
-                        closest = distance;
-                        closestFood = food;
-                    }
-                }
-            });
+        foods.forEach((f, i) => {
+            const distance = this.getDistanceToSprite(f);
+            if (distance < closest) {
+                closest = distance;
+                index = i;
+                food = f;
+            }
+        });
 
-        return closestFood;
+        return {food, index};
     }
 
     isWithinRangeOfPoint(point) {

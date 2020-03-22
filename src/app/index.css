@@ -12,3 +12,11 @@ html, body {
     height: 250px;
     flex: 1
 }
+
+.controls {
+    display: flex;
+}
+
+.controls .field {
+    margin-left: 5px;
+}

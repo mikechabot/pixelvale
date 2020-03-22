@@ -1,15 +1,48 @@
 import * as PIXI from 'pixi.js';
 
+import RootStore from './stores/rootStore';
 import Food from './domain/Food';
 
 import loop from './loop';
 
 import {INITIAL_FOOD, MAX_MONSTERS, SPRITE_KEY} from './const';
 
-import {getMonsterContainer, getTitle} from './util/sprite';
-import {buildCharts} from './charts';
+import {getMonsterContainer} from './util/sprite';
+
 
 const {utils: {TextureCache}} = PIXI;
+
+/**
+ * Build the monster sprites
+ * @param spriteMap
+ * @returns {{monsters: [], monsterContainers: []}}
+ */
+const buildMonsterSprites = (spriteMap) => {
+    const monsters = [];
+    const monsterContainers = [];
+
+    for (let i = 0; i < MAX_MONSTERS; i++) {
+        const {monster, monsterContainer} = getMonsterContainer(spriteMap);
+        monsters.push(monster);
+        monsterContainers.push(monsterContainer);
+    }
+
+    return {monsters, monsterContainers};
+};
+
+/**
+ * Build the food sprites
+ * @param spriteMap
+ * @returns {[]}
+ */
+const buildFoodSprites = (spriteMap) => {
+    const foods = [];
+    for (let i = 0; i < INITIAL_FOOD; i++) {
+        const food = new Food(spriteMap);
+        foods.push(food);
+    }
+    return foods;
+};
 
 export const setup = (app) => {
 
@@ -33,47 +66,50 @@ export const setup = (app) => {
     /**
      * Create the monster sprites
      */
-    const monsters = [];
     const monsterSpriteMap = TextureCache[SPRITE_KEY.MONSTER];
-    for (let i = 0; i < MAX_MONSTERS; i++) {
-        const {monster, monsterContainer} = getMonsterContainer(monsterSpriteMap);
-        monsters.push(monster);
-        addSprite(monsterContainer);
-    }
+    const {monsters, monsterContainers} = buildMonsterSprites(monsterSpriteMap);
+
+    monsterContainers.forEach(container => {
+        addSprite(container);
+    });
 
     /**
      * Create the food sprites
      */
-    const foods = {};
     const foodSpriteMap = TextureCache[SPRITE_KEY.FOOD];
-    for (let i = 0; i < INITIAL_FOOD; i++) {
-        const food = new Food(foodSpriteMap);
-        foods[food.getGuid()] = food;
-        addSprite(food.getSprite());
-    }
+    const foods = buildFoodSprites(foodSpriteMap);
 
-    /**
-     * Create the title sprite
-     * @type {PIXI.Text}
-     */
-    const title = getTitle(monsters);
-    addSprite(title);
+    foods.forEach(food => {
+        addSprite(food.getSprite());
+    });
 
     app.renderer.render(app.stage);
 
-    const sprites = {monsters, foods};
+    let pause = false;
+    const initialFood = document.getElementById('action');
+    initialFood.addEventListener('click', () => {
+        if (!pause) {
+            pause = true;
+            initialFood.innerText = 'Start';
+        } else {
+            pause = false;
+            initialFood.innerText = 'Pause';
+        }
+    });
+
     const spriteMaps = {monsterSpriteMap, foodSpriteMap};
     const utilities = {addSprite, removeSprite};
-    const charts = buildCharts(monsters);
+
+    const store = new RootStore(monsters, foods);
 
     app.ticker.add(() => {
-        loop(
-            app,
-            utilities,
-            sprites,
-            title,
-            spriteMaps,
-            charts,
-        );
+        if (!pause) {
+            loop(
+                app,
+                utilities,
+                store,
+                spriteMaps
+            );
+        }
     });
 };
